@@ -1,332 +1,90 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package javaapplication1;
-import java.awt.AWTException;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Robot;
-import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.swing.Timer;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.print.PageFormat;
-import java.awt.print.Paper;
-import java.awt.print.Printable;
-import static java.awt.print.Printable.NO_SUCH_PAGE;
-import static java.awt.print.Printable.PAGE_EXISTS;
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
-import java.io.File;
-import java.text.DateFormat;
+import java.awt.event.*;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import static javaapplication1.JDEntradas.drawStringMultiLine;
-import static javaapplication1.JDEntradas.siguiente;
-
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JDialog;
 import static javax.swing.JOptionPane.showMessageDialog;
-import net.sourceforge.barbecue.Barcode;
-import net.sourceforge.barbecue.BarcodeException;
-import net.sourceforge.barbecue.BarcodeFactory;
-import net.sourceforge.barbecue.BarcodeImageHandler;
-import simplemysql.SimpleMySQL;
-import simplemysql.SimpleMySQLResult;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.PlainDocument;
 
-/**
- *
- * @author Jonatan
- */
+
 public class JDSalidas extends javax.swing.JDialog {
 public int siguiente = JDEntradas.siguiente;
 public String estado="PAGADO";
 public static  int linea=0;
+public Db db;
+public Autos auto;
+public Impresiones impresion;
+int importe=0;
     public JDSalidas(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
         this.setLocationRelativeTo(null);
-         
+       
+        db=new Db();
+        auto=new Autos();
+        impresion=new Impresiones();
+        PlainDocument doc = new TextLimiter(7);
+        doc.setDocumentFilter(new upperCASEJTEXTFIELD());
+        txtFolio.setDocument(doc);
         txtFolio.requestFocusInWindow();
-       txtFolio.addKeyListener(new KeyListenerCustom(this));
-       txtpago.addKeyListener(new KeyListenerCustom(this));
-       JCTicket1.setFocusable(false);
-       JCTicket2.setFocusable(false);
-       JBF9.setFocusable(false);
-       JBF10.setFocusable(false);
-       JBF11.setFocusable(false);
-       JBF12.setFocusable(false);
-       JBF13.setFocusable(false);
-       JBF14.setFocusable(false);
-       JBF15.setFocusable(false);
-       JBF16.setFocusable(false);
-       JCTarifa1.setFocusable(false);
+        txtFolio.addKeyListener(new KeyListenerCustom(this));
+        txtpago.addKeyListener(new KeyListenerCustom(this));
+        JCTicket1.setFocusable(false);
+        JCTicket2.setFocusable(false);
+        JBF9.setFocusable(false);
+        JBF10.setFocusable(false);
+        JBF11.setFocusable(false);
+        JBF12.setFocusable(false);
+        JBF13.setFocusable(false);
+        JBF14.setFocusable(false);
+        JBF15.setFocusable(false);
+        JBF16.setFocusable(false);
+        JCTarifa1.setFocusable(false);
+        JCTarifa1.setModel(new DefaultComboBoxModel(db.ListaTarifas()));
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         SimpleDateFormat sdfa = new SimpleDateFormat("dd/MM/yyyy");
-        
-        
-        new Timer(1000, new ActionListener() {
-            
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            Calendar cal = Calendar.getInstance();
-    	cal.getTime();
-            txtHorasalida.setText(sdf.format(cal.getTime()));
-        txtFechasalida.setText(sdfa.format(cal.getTime()));
-        
-        SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-        SimpleMySQLResult rs;
-            rs = mysql.Query ("SELECT * FROM opciones");
-        String opciones[]=new String[25];
-        int i=0;
-        while (rs.next()){ 
-            opciones[i] =rs.getString("OPCION"); 
-            opciones[i] =rs.getString("VALOR"); 
-        i++;
-        } 
-       
-       int cajones=Integer.parseInt(opciones[9]);
-       
-        rs = mysql.Query ("SELECT * FROM estacionados WHERE SALIDA IS NULL ORDER BY ID DESC ");
-    	
-       cajones=cajones- rs.getNumRows();
-       jLabel14.setText(Integer.toString(rs.getNumRows()));
-       jLabel15.setText(Integer.toString(cajones));
-        }
-    }).start();
-        
-         SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-        SimpleMySQLResult rs;
-        rs = mysql.Query ("SELECT * FROM tarifas");
-        while (rs.next()){
+        Calendar cal = Calendar.getInstance();
 
-                        String USUARIO=rs.getString("DESCRIPCION");
-                        JCTarifa1.addItem(USUARIO);
-                  
-         }
-        
-         rs = mysql.Query ("SELECT * FROM opciones");
-        String opciones[]=new String[20];
-        int i=0;
-        while (rs.next()){ 
-            opciones[i] =rs.getString("OPCION"); 
-            opciones[i] =rs.getString("VALOR"); 
-        i++;
-        } 
-       
-       int cajones=Integer.parseInt(opciones[9]);
-       
-        rs = mysql.Query ("SELECT * FROM estacionados WHERE SALIDA IS NULL ORDER BY ID DESC ");
-    	
-       cajones=cajones- rs.getNumRows();
-       jLabel14.setText(Integer.toString(rs.getNumRows()));
-       jLabel15.setText(Integer.toString(cajones));
-        
-        
-        
+        new Timer(1000, (ActionEvent e) -> {
+            txtHorasalida.setText(sdf.format(cal.getTime()));
+            txtFechasalida.setText(sdfa.format(cal.getTime()));
+            jLabel14.setText(Integer.toString(db.CajonesOcupados()));
+            jLabel15.setText(Integer.toString(db.CajonesDisponibles()));
+        }).start();
+
         JCTarifa1.addItemListener(new ItemListener() {
      @Override
      public void itemStateChanged(ItemEvent e) {
-          SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-       SimpleMySQLResult rs;
-       Date now = new Date();
- 
-int mismodia=0;
-String hapertura="";
-String hcierre="";
-      rs = mysql.Query ("SELECT * FROM opciones");
-      while (rs.next()){ 
-          if(rs.getString("ID").equals("18")){
-        mismodia=Integer.parseInt(rs.getString("VALOR"));
-                }
-          if(rs.getString("ID").equals("15")){
-       hapertura=rs.getString("VALOR");
-                }
-          if(rs.getString("ID").equals("16")){
-        hcierre=rs.getString("VALOR");
-                }
-      }
-       rs = mysql.Query ("SELECT *,NOW() AS ahora FROM estacionados WHERE TICKET= \""+txtFolio.getText().substring(1,7)+"\" AND SERIE = \""+txtFolio.getText().substring(0,1)+"\" ORDER BY ID DESC LIMIT 1");
-                
-        String fechaentrada="yyyy-MM-dd";
-String horaentrada="00:00:00";
- String fechasalida="yyyy-MM-dd";
-String horasalida="00:00:00";
-  
+         calcular();
 
-        while (rs.next()){ 
-            
-
-            SimpleDateFormat sistema = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            SimpleDateFormat fecha = new SimpleDateFormat("yyyy-MM-dd"); 
-            SimpleDateFormat hora = new SimpleDateFormat("HH:mm:ss"); 
-            String tentrada= rs.getString("ENTRADA");
-            String tsalida= rs.getString("ahora");
-
-                  try {
-                      fechaentrada= fecha.format(sistema.parse(tentrada));
-                      horaentrada= hora.format(sistema.parse(tentrada));
-                      
-                      fechasalida= fecha.format(sistema.parse(tsalida));
-                      horasalida= hora.format(sistema.parse(tsalida));
-                  } catch (ParseException ex) {
-                      Logger.getLogger(JDSalidas.class.getName()).log(Level.SEVERE, null, ex);
-                  }
-              
-
-Date d1f = null;
-Date d1h = null;
-Date d2f = null;
-Date d2h = null;
-
-String time= null;
-            try {
-			d1f = fecha.parse(fechaentrada);
-			d2f = fecha.parse(fechasalida);
-                        
-                        d1h = hora.parse(horaentrada);
-			d2h = hora.parse(horasalida);
- 
-			//in milliseconds
-			long diff = d2f.getTime() - d1f.getTime();
-                        
-                        long diff2 = d2h.getTime() - d1h.getTime();
- 
-			long diferenciadias = diff / (24 * 60 * 60 * 1000);
-                        long diffMinutes = diff2 / (60 * 1000) % 60;
-			long diffHours = diff2 / (60 * 60 * 1000) % 24;
-                        long diffSeconds = diff2 / 1000 % 60;
-                        
-                        String diferenciatiempo = String.format("%02d:%02d:%02d", Math.abs(diffHours), Math.abs(diffMinutes), Math.abs(diffSeconds));
-                        
-txttiempo1.setText(Long.toString(diferenciadias)); 
-     txttiempo.setText(diferenciatiempo); 
-		} catch (Exception esa) {
-			esa.printStackTrace();
-		}
-            
-         
-            
-            
-            
-            txtpago.requestFocusInWindow();
-            txtpago.selectAll();
-
-             rs = mysql.Query ("SELECT * FROM tarifas WHERE DESCRIPCION= \""+JCTarifa1.getSelectedItem()+"\"");
-            System.out.println(JCTarifa1.getSelectedItem());
-             
-        while (rs.next()){ 
-            
-            if (mismodia==0) {
-                if(txttiempo1.getText().equals("0"))
-                {}else{
-                txtimporte.setText(Integer.toString(Integer.parseInt(txttiempo1.getText())*80));
-                try {
-                        d1h = hora.parse(hapertura);
-			d2h = hora.parse(horasalida);
-                       
-                        long diff2 = d2h.getTime() - d1h.getTime();
-                        long diffMinutes = diff2 / (60 * 1000) % 60;
-			long diffHours = diff2 / (60 * 60 * 1000) % 24;
-                        long diffSeconds = diff2 / 1000 % 60;
-                     
-                        String diferenciatiempo = String.format("%02d:%02d:%02d", Math.abs(diffHours), Math.abs(diffMinutes), Math.abs(diffSeconds));
-                        txttiempo.setText(diferenciatiempo); 
-		} catch (Exception esa) {
-			esa.printStackTrace();
-		}
-                }
-           }else{
-            if(txttiempo1.getText().equals("0"))
-                {
-                    if (horaentrada.compareTo(hapertura)>=0) {
-                        
-                    }else{
-                    txtimporte.setText("80");
-                    }
-                
-                }else{
-            txtimporte.setText(Integer.toString((Integer.parseInt(txttiempo1.getText())+1)*80));
-                try {
-                        d1h = hora.parse(hapertura);
-			d2h = hora.parse(horasalida);
-                       
-                        long diff2 = d2h.getTime() - d1h.getTime();
-                        long diffMinutes = diff2 / (60 * 1000) % 60;
-			long diffHours = diff2 / (60 * 60 * 1000) % 24;
-                        long diffSeconds = diff2 / 1000 % 60;
-                     
-                        String diferenciatiempo = String.format("%02d:%02d:%02d", Math.abs(diffHours), Math.abs(diffMinutes), Math.abs(diffSeconds));
-                        txttiempo.setText(diferenciatiempo); 
-		} catch (Exception esa) {
-			esa.printStackTrace();
-		}
-            }
-            }
-            txtimporte.setText("0");
-            
-            for (int i = 1; i <= 48; i++) {
-                
-             if (txttiempo.getText().compareTo(rs.getString("tiempoe"+i))>=0 && txttiempo.getText().compareTo(rs.getString("tiempos"+i))<0 ) {
-        
-                 txtimporte.setText(Integer.toString(Integer.parseInt(rs.getString("tiempot"+i))+Integer.parseInt(txtimporte.getText())));
-             System.out.println(rs.getString("tiempot"+i));
-             }
      }
-        }
-     
-        }
-     }
+
  });
-      rs.close(); 
-      
-      
+
       JCTicket2.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-          
-          SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-          SimpleMySQLResult rs;
-         rs = mysql.Query ("SELECT * FROM opciones WHERE ID=11");
-           int boletop=0;
-        while (rs.next()){ 
-           boletop=Integer.parseInt(rs.getString("VALOR"));
-                
-             
-        } 
-          
-          
+          int boletop=Integer.parseInt(db.ObtenerOpcion("BOLETOPERDIDO"));
+
           if (JCTicket2.isSelected()) {
-              txtimporte.setText(Integer.toString(Integer.parseInt(txtimporte.getText())+boletop));
+              importe=importe+boletop;
+              txtimporte.setText(Integer.toString(importe));
               estado="BOLETOPERDIDO";
               
           }else{
-              txtimporte.setText(Integer.toString(Integer.parseInt(txtimporte.getText())-boletop));
+              importe=importe-boletop;
+              txtimporte.setText(Integer.toString(importe));
               estado="PAGADO";
           }
       }
     });
+
       txtFechaentradas.setEditable(false);
       txtFechasalida.setEditable(false);
       txtHoraentradas.setEditable(false);
@@ -338,12 +96,109 @@ txttiempo1.setText(Long.toString(diferenciadias));
       txtPlacas.setEditable(false);
       
     }
+    
+         public void calcular(){
+        Map<String,String> Boleto=db.ConsultarBoleto(txtFolio.getText().substring(1,7), txtFolio.getText().substring(0,1));
+        SimpleDateFormat completa = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S"); 
+        SimpleDateFormat fecha = new SimpleDateFormat("yyyy-MM-dd"); 
+        SimpleDateFormat hora = new SimpleDateFormat("HH:mm:ss"); 
+        if(Boleto == null || Boleto.isEmpty()){
+            showMessageDialog(null, "No es un Folio Valido");
+        }else if(!Boleto.get("ESTATUS").equals("Registro")){
+            showMessageDialog(null, "Folio ya pagado");
+            txttiempo1.setText(Boleto.get("DIAS")); 
+            txttiempo.setText(Boleto.get("TIEMPO"));
+            txtimporte.setText(Boleto.get("IMPORTE"));
+            txtMarca.setText(Boleto.get("MARCA"));
+            txtPlacas.setText(Boleto.get("PLACAS"));
+            try {
+                txtFechaentradas.setText(fecha.format(fecha.parse(Boleto.get("ENTRADA"))));
+                txtHoraentradas.setText(hora.format(completa.parse(Boleto.get("ENTRADA"))));
+                txtFechasalida.setText(fecha.format(fecha.parse(Boleto.get("SALIDA"))));
+                txtHorasalida.setText(hora.format(completa.parse(Boleto.get("SALIDA"))));
+            } catch (ParseException ex) {}
+            txtFolio.requestFocusInWindow();
+            txtFolio.selectAll();
+            
+        }else{
+        int mismodia=Integer.parseInt(db.ObtenerOpcion("HENTRADA"));
+        int TarifaNocturna=Integer.parseInt(db.ObtenerOpcion("TNOCTURNA"));
+        int diferenciadias=0;
+        long fechaentrada=0,horaentrada=0,fechasalida=0,horasalida=0,horacierre=0,horaapertura=0;
+        String diferenciatiempo="";
+        try {
+            horaentrada= completa.parse(Boleto.get("ENTRADA")).getTime();
+            horasalida= completa.parse(Boleto.get("ahora")).getTime();
+            horacierre= fechaentrada+hora.parse(hora.format(hora.parse(db.ObtenerOpcion("HCIERRE")))).getTime();
+            horaapertura= fechasalida+hora.parse(hora.format(hora.parse(db.ObtenerOpcion("HAPERTURA")))).getTime();
+            
+            long diferenciadiaslong =((horasalida - horaentrada) / (24 * 60 * 60 * 1000));
+            diferenciadias = (int)diferenciadiaslong;       
+            diferenciatiempo = DiferenciaTiempo(horasalida - horaentrada);
+            
+        } catch (Exception ex) {}
+        
+            txtpago.requestFocusInWindow();
+            txtpago.selectAll();
+            
+            if (mismodia==1) { //SI CIERRA EL MISMO DÍA
+                if(diferenciadias!=0) { //SI PASÓ MAS DE UN DÍA
+                    long tiemposalida=0;
+                    if (horasalida>horaapertura) {tiemposalida=(horasalida-horaapertura); }
+                    diferenciatiempo = DiferenciaTiempo((horacierre - horaentrada)+(tiemposalida));
+                        System.out.println(tiemposalida);
+                }else{ //SI NO PASÓ MAS DE UN DÍA
+                    diferenciatiempo = DiferenciaTiempo(horasalida-horaentrada);
+                    System.out.println("no ya valio");
+                }
+           }else{ //SI NO CIERRA EL MISMO DÍA
+                if(fechaentrada==fechasalida&&horasalida<horaapertura){ //SI LLEGÓ EL MISMO DIA Y SE FUE ANTES DE CERRAR
+                    diferenciatiempo = DiferenciaTiempo(horasalida-horaentrada);
+                }
+                else if(fechaentrada==fechasalida&&horasalida>horaapertura){ //SI LLEGÓ EL MISMO DÍA Y SE QUEDÓ LA NOCHE
+                    diferenciadias=1;
+                    diferenciatiempo = DiferenciaTiempo((horacierre - horaentrada)+(horasalida-horaapertura));
+                }
+                else if(diferenciadias==1&&horasalida<horaapertura){ //SI LLEGÓ UN DÍA ANTES Y SE FUÉ ANTES DE CERRAR
+                    diferenciadias--;
+                    diferenciatiempo = DiferenciaTiempo(horasalida-horaentrada);
+                }
+                else if(diferenciadias==1&&horasalida>horaapertura){ //SI LLEGÓ UN DÍA ANTES PERO SE QUEDÓ LA NOCHE
+                    diferenciatiempo = DiferenciaTiempo((horasalida-horaapertura)+(horacierre-horaentrada));
+                }else if(diferenciadias>=1){
+                    diferenciatiempo = DiferenciaTiempo((horasalida-horaapertura)+(horacierre-horaentrada)+((diferenciadias-1)*(horacierre-horaapertura)));
+                }
+            }
+            importe=diferenciadias*TarifaNocturna; //COSTO POR LAS NOCHES
+            
+            Map<String,String> Tarifa=db.Tarifa(JCTarifa1.getSelectedItem().toString());
+            
+            for (int i = 1; i <= 48; i++) {
+                if (diferenciatiempo.compareTo(Tarifa.get("tiempoe"+i))>=0 && diferenciatiempo.compareTo(Tarifa.get("tiempos"+i))<0 ) {
+                    importe=importe+Integer.parseInt(Tarifa.get("tiempot"+i));
+                }
+            }
+            txttiempo1.setText(Integer.toString(diferenciadias)); 
+            txttiempo.setText(diferenciatiempo);
+            txtimporte.setText(Integer.toString(importe));
+            txtMarca.setText(Boleto.get("MARCA"));
+            txtPlacas.setText(Boleto.get("PLACAS"));
+    try {
+        txtFechaentradas.setText(fecha.format(fecha.parse(Boleto.get("ENTRADA"))));
+        txtHoraentradas.setText(hora.format(completa.parse(Boleto.get("ENTRADA"))));
+    } catch (ParseException ex) {}
+            
+         }
+     }
+    public String DiferenciaTiempo(long diferencia){
+        String DirefenciaTiempo="";
+        long diffMinutes = diferencia / (60 * 1000) % 60;
+	long diffHours = diferencia / (60 * 60 * 1000) % 24;
+        long diffSeconds = diferencia / 1000 % 60;
+        DirefenciaTiempo = String.format("%02d:%02d:%02d", Math.abs(diffHours), Math.abs(diffMinutes), Math.abs(diffSeconds));
+        return DirefenciaTiempo;
+    }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -978,66 +833,28 @@ jds.setVisible(rootPaneCheckingEnabled);// TODO add your handling code here:
     }//GEN-LAST:event_JCTicket2ActionPerformed
 
     private void JCTarifa1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_JCTarifa1ActionPerformed
-      
-        
-    
-   
+ 
     }//GEN-LAST:event_JCTarifa1ActionPerformed
 
     private void JBGrabar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_JBGrabar1ActionPerformed
- SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-       SimpleMySQLResult rs;
-       rs = mysql.Query ("SELECT * FROM estacionados WHERE TICKET= \""+txtFolio.getText().substring(1,7)+"\" AND SERIE = \""+txtFolio.getText().substring(0,1)+"\" AND ESTATUS= \"Registro\"");
-       if(rs.next()){
-       mysql.Query ("UPDATE estacionados SET SALIDA=NOW(),TIEMPO=\""+txttiempo.getText()+"\",DIAS=\""+txttiempo1.getText()+"\",IMPORTE=\""+txtimporte.getText()+"\",ESTATUS=\""+estado+"\", TARIFA=\""+JCTarifa1.getSelectedItem()+"\"  WHERE TICKET= \""+txtFolio.getText().substring(1,7)+"\" AND SERIE = \""+txtFolio.getText().substring(0,1)+"\"");
-       
-          
-      
-      
 
-        mysql.close();
-          PrinterJob job = PrinterJob.getPrinterJob();
-          PageFormat pf = job.defaultPage();  
-          
-            Paper paper = new Paper();  
-            paper.setImageableArea(0, 0, paper.getWidth(), paper.getHeight());  
-            pf.setPaper(paper);  
-            
-            job.setPrintable( new MiPrintable(),pf);
-            
-try 
-{
-   if(JCTicket2.isSelected()){}else{
-   
-   if(JCTicket1.isSelected()||JCTicket2.isSelected()){
-   job.print();
-   }
-   }
-   
-} 
-catch (PrinterException es) 
-{
-   es.printStackTrace();
-}
-if(JCTicket2.isSelected()){
-          
-    this.dispose();
-   JDBoletoPerdido bp = new JDBoletoPerdido(this,true);
-   JDBoletoPerdido.jTextField7.setText(txtFolio.getText().substring(1,7));
-   JDBoletoPerdido.jTextField8.setText(txtFolio.getText().substring(0,1));
-   bp.setVisible(true);
-    try {
-               job.print();
-           } catch (PrinterException es) {
-               es.printStackTrace();
-           }
-   }
+       Map<String,String> Boleto=db.ConsultarBoletoPagado(txtFolio.getText().substring(1,7), txtFolio.getText().substring(0,1));
+       if(Boleto == null || Boleto.isEmpty()){
+           showMessageDialog(null, "No es un Folio Valido o ya está Pagado");
        }else{
-       showMessageDialog(null, "No es un Folio Valido o ya está Pagado");
+           auto.Actualizar(txttiempo.getText(), txttiempo1.getText(), txtimporte.getText(), estado, JCTarifa1.getSelectedItem().toString(), txtFolio.getText().substring(1,7), txtFolio.getText().substring(0,1));
+           if(JCTicket1.isSelected()&&!JCTicket2.isSelected()){
+           impresion.Imprimecomprobante(Integer.parseInt(txtFolio.getText().substring(1,7)), txtFolio.getText().substring(0,1));
+           }else if(JCTicket2.isSelected()){
+               this.dispose();
+               JDBoletoPerdido bp = new JDBoletoPerdido(this,true);
+               JDBoletoPerdido.jTextField7.setText(txtFolio.getText().substring(1,7));
+               JDBoletoPerdido.jTextField8.setText(txtFolio.getText().substring(0,1));
+               bp.setVisible(true);
+               impresion.Imprimecomprobante(Integer.parseInt(txtFolio.getText().substring(1,7)), txtFolio.getText().substring(0,1));
+            }
        }
-    txtFolio.setText("");
+        txtFolio.setText("");
         txtimporte.setText("");
         txtpago.setText("");
         txtFechaentradas.setText("");
@@ -1052,59 +869,16 @@ if(JCTicket2.isSelected()){
         JCTicket2.setSelected(false);
         JCTarifa1.setSelectedIndex(0);
         txtFolio.requestFocusInWindow(); 
-        
-        
-          rs = mysql.Query ("SELECT * FROM opciones");
-        String opciones[]=new String[20];
-        int i=0;
-        while (rs.next()){ 
-            opciones[i] =rs.getString("OPCION"); 
-            opciones[i] =rs.getString("VALOR"); 
-        i++;
-        } 
-       
-       int cajones=Integer.parseInt(opciones[9]);
-       
-        rs = mysql.Query ("SELECT * FROM estacionados WHERE SALIDA IS NULL ORDER BY ID DESC ");
-    	
-       cajones=cajones- rs.getNumRows();
-       jLabel14.setText(Integer.toString(rs.getNumRows()));
-       jLabel15.setText(Integer.toString(cajones));
-        
+         
     }//GEN-LAST:event_JBGrabar1ActionPerformed
 
     private void txtimporteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtimporteActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtimporteActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(JDSalidas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(JDSalidas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(JDSalidas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(JDSalidas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
 
-        /* Create and display the dialog */
+    public static void main(String args[]) {
+
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 JDSalidas dialog = new JDSalidas(new javax.swing.JFrame(), true);
@@ -1118,570 +892,159 @@ if(JCTicket2.isSelected()){
             }
         });
     }
+        public class upperCASEJTEXTFIELD extends DocumentFilter {
+
+    @Override
+    public void insertString(DocumentFilter.FilterBypass fb, int offset, String text,
+            AttributeSet attr) throws BadLocationException {
+        fb.insertString(offset, text.toUpperCase(), attr);
+    }
+
+    @Override
+    public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text,
+            AttributeSet attrs) throws BadLocationException {
+
+        fb.replace(offset, length, text.toUpperCase(), attrs);
+    }
+}
+    
+    public class TextLimiter extends PlainDocument {
+
+    private Integer limit;
+
+    public TextLimiter(Integer limit) {
+        super();
+        this.limit = limit;
+    }
+
+    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+        if (str == null) {
+            return;
+        }
+        if (limit == null || limit < 1 || ((getLength() + str.length()) <= limit)) {
+            super.insertString(offs, str, a);
+        } else if ((getLength() + str.length()) > limit) {
+            String insertsub = str.substring(0, (limit - getLength()));
+            super.insertString(offs, insertsub, a);
+        }
+    }
+}
 public String lalaserie = null;    
 public class KeyListenerCustom implements KeyListener{
     private JDialog dialog=null;
     public KeyListenerCustom(JDialog dialog){
-        System.out.println("Dialog!");
         this.dialog=dialog;
     }
     public void keyTyped(KeyEvent e) {
-        System.out.println("Tecla apretada");
+
     }
  
     public void keyPressed(KeyEvent e) {
-        System.out.println("entro");
-        if(e.getKeyCode()==123) {//27 es el código de la tecla esc
-           
-            dialog.setVisible(false);
-            JDEntradas jds=new JDEntradas(null, rootPaneCheckingEnabled);
-            jds.setVisible(rootPaneCheckingEnabled);
-        }
         
-        if(e.getKeyCode()==KeyEvent.VK_ENTER){
-             if(txtFolio.isFocusOwner()){
-              SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-       SimpleMySQLResult rs;
-       Date now = new Date();
- 
-int mismodia=0;
-String hapertura="";
-String hcierre="";
-      rs = mysql.Query ("SELECT * FROM opciones");
-      while (rs.next()){ 
-          if(rs.getString("ID").equals("18")){
-        mismodia=Integer.parseInt(rs.getString("VALOR"));
+        switch(e.getKeyCode()){
+            case 123:
+                dialog.setVisible(false);
+                JDEntradas jds=new JDEntradas(null, rootPaneCheckingEnabled);
+                jds.setVisible(rootPaneCheckingEnabled);
+                break;
+            case KeyEvent.VK_ENTER:
+                if(txtFolio.isFocusOwner()){
+                    calcular();
+                }else if(txtpago.isFocusOwner()){
+                    int debe = Integer.parseInt(txtimporte.getText());
+                    int paga = Integer.parseInt(txtpago.getText());
+                    int total = paga-debe;
+                    txtcambio.setText(String.valueOf(total));
+                    txtFolio.requestFocusInWindow();
+                    txtFolio.selectAll();
                 }
-          if(rs.getString("ID").equals("15")){
-       hapertura=rs.getString("VALOR");
-                }
-          if(rs.getString("ID").equals("16")){
-        hcierre=rs.getString("VALOR");
-                }
-      }
-       rs = mysql.Query ("SELECT *,NOW() AS ahora FROM estacionados WHERE TICKET= \""+txtFolio.getText().substring(1,7)+"\" AND SERIE = \""+txtFolio.getText().substring(0,1)+"\" ORDER BY ID DESC LIMIT 1");
-                
-        String fechaentrada="yyyy-MM-dd";
-String horaentrada="00:00:00";
- String fechasalida="yyyy-MM-dd";
-String horasalida="00:00:00";
-  
-
-        while (rs.next()){ 
-            
-             if (rs.getString("ESTATUS").equals("PAGADO")) {
-                     showMessageDialog(null, "Boleto ya pagado");
-                     txtpago.setText("Pagado");
-                     txtimporte.setText(rs.getString("IMPORTE"));
-                     txtFolio.requestFocusInWindow();
-                 }
-                 if (rs.getString("ESTATUS").equals("BOLETOPERDIDO")) {
-                     showMessageDialog(null, "Boleto perdido");
-                     txtpago.setText("Perdido");
-                     txtFolio.requestFocusInWindow();
-                 }
-                 if (rs.getString("ESTATUS").equals("CANCELADO")) {
-                     showMessageDialog(null, "Boleto cancelado");
-                     txtimporte.setText("Cancelado");
-                     txtpago.requestFocusInWindow();
-                 }
-            SimpleDateFormat sistema = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            SimpleDateFormat fecha = new SimpleDateFormat("yyyy-MM-dd"); 
-            SimpleDateFormat hora = new SimpleDateFormat("HH:mm:ss"); 
-            String tentrada= rs.getString("ENTRADA");
-            String tsalida= rs.getString("ahora");
-
-                  try {
-                      fechaentrada= fecha.format(sistema.parse(tentrada));
-                      horaentrada= hora.format(sistema.parse(tentrada));
-                      
-                      fechasalida= fecha.format(sistema.parse(tsalida));
-                      horasalida= hora.format(sistema.parse(tsalida));
-                  } catch (ParseException ex) {
-                      Logger.getLogger(JDSalidas.class.getName()).log(Level.SEVERE, null, ex);
-                  }
-              
-
-Date d1f = null;
-Date d1h = null;
-Date d2f = null;
-Date d2h = null;
-
-String time= null;
-            try {
-			d1f = fecha.parse(fechaentrada);
-			d2f = fecha.parse(fechasalida);
-                        
-                        d1h = hora.parse(horaentrada);
-			d2h = hora.parse(horasalida);
- 
-			//in milliseconds
-			long diff = d2f.getTime() - d1f.getTime();
-                        
-                        long diff2 = d2h.getTime() - d1h.getTime();
- 
-			long diferenciadias = diff / (24 * 60 * 60 * 1000);
-                        long diffMinutes = diff2 / (60 * 1000) % 60;
-			long diffHours = diff2 / (60 * 60 * 1000) % 24;
-                        long diffSeconds = diff2 / 1000 % 60;
-                        
-                        String diferenciatiempo = String.format("%02d:%02d:%02d", Math.abs(diffHours), Math.abs(diffMinutes), Math.abs(diffSeconds));
-                        
-txttiempo1.setText(Long.toString(diferenciadias)); 
-     txttiempo.setText(diferenciatiempo); 
-		} catch (Exception esa) {
-			esa.printStackTrace();
-		}
-            
-           
-            
-            txtFechaentradas.setText(fechaentrada); 
-            txtHoraentradas.setText(horaentrada);
-            JCTarifa1.setSelectedItem(rs.getString("TARIFA"));
-            txtPlacas.setText(rs.getString("PLACAS"));
-            txtMarca.setText(rs.getString("MARCA"));
-            
-            
-            
-            
-            txtpago.requestFocusInWindow();
-            txtpago.selectAll();
-            if (rs.getString("ESTATUS").equals("PAGADO")) {
-                     
-                     txtFolio.requestFocusInWindow();
-                     txtimporte.setText(rs.getString("IMPORTE"));
-                     txttiempo1.setText(rs.getString("DIAS"));
-                     txtFolio.selectAll();
-                 }
-                 if (rs.getString("ESTATUS").equals("BOLETOPERDIDO")) {
-                     
-                     txtFolio.requestFocusInWindow();
-                     txtFolio.selectAll();
-                 }
-                 if (rs.getString("ESTATUS").equals("CANCELADO")) {
-                     
-                     txtFolio.requestFocusInWindow();
-                     txtFolio.selectAll();
-                 }
-            
-             rs = mysql.Query ("SELECT * FROM tarifas WHERE DESCRIPCION= \""+JCTarifa1.getSelectedItem()+"\"");
-            System.out.println(JCTarifa1.getSelectedItem());
-             
-        while (rs.next()){ 
-            
-            if (mismodia==0) {
-                if(txttiempo1.getText().equals("0"))
-                {}else{
-                txtimporte.setText(Integer.toString(Integer.parseInt(txttiempo1.getText())*80));
-                try {
-                        d1h = hora.parse(hapertura);
-			d2h = hora.parse(horasalida);
-                       
-                        long diff2 = d2h.getTime() - d1h.getTime();
-                        long diffMinutes = diff2 / (60 * 1000) % 60;
-			long diffHours = diff2 / (60 * 60 * 1000) % 24;
-                        long diffSeconds = diff2 / 1000 % 60;
-                     
-                        String diferenciatiempo = String.format("%02d:%02d:%02d", Math.abs(diffHours), Math.abs(diffMinutes), Math.abs(diffSeconds));
-                        txttiempo.setText(diferenciatiempo); 
-		} catch (Exception esa) {
-			esa.printStackTrace();
-		}
-                }
-           }else{
-            if(txttiempo1.getText().equals("0"))
-                {
-                    if (horaentrada.compareTo(hapertura)>=0) {
-                        
-                    }else{
-                    txtimporte.setText("80");
-                    }
-                
+                break;
+            case KeyEvent.VK_F9:
+                Map<String,String> Boleto=db.ConsultarBoletoPagado(txtFolio.getText().substring(1,7), txtFolio.getText().substring(0,1));
+                if(Boleto == null || Boleto.isEmpty()){
+                    
+                    showMessageDialog(null, "No es un Folio Valido o ya está Pagado");
                 }else{
-                    txtimporte.setText(Integer.toString((Integer.parseInt(txttiempo1.getText())+1)*80));
-                try {
-                        d1h = hora.parse(hapertura);
-			d2h = hora.parse(horasalida);
-                       
-                        long diff2 = d2h.getTime() - d1h.getTime();
-                        long diffMinutes = diff2 / (60 * 1000) % 60;
-			long diffHours = diff2 / (60 * 60 * 1000) % 24;
-                        long diffSeconds = diff2 / 1000 % 60;
-                     
-                        String diferenciatiempo = String.format("%02d:%02d:%02d", Math.abs(diffHours), Math.abs(diffMinutes), Math.abs(diffSeconds));
-                        txttiempo.setText(diferenciatiempo); 
-		} catch (Exception esa) {
-			esa.printStackTrace();
-		}
-            }
-            }
-            
-            txtimporte.setText("0");
-            for (int i = 1; i <= 48; i++) {
-
-             if (txttiempo.getText().compareTo(rs.getString("tiempoe"+i))>=0 && txttiempo.getText().compareTo(rs.getString("tiempos"+i))<0 ) {
-                
-                 txtimporte.setText(Integer.toString(Integer.parseInt(rs.getString("tiempot"+i))+Integer.parseInt(txtimporte.getText())));
-
-             }
-     }
+                    System.out.println("es qui");
+                    auto.Actualizar(txttiempo.getText(), txttiempo1.getText(), txtimporte.getText(), estado, JCTarifa1.getSelectedItem().toString(), txtFolio.getText().substring(1,7), txtFolio.getText().substring(0,1));
+                    if(JCTicket1.isSelected()&&!JCTicket2.isSelected()){
+                    impresion.Imprimecomprobante(Integer.parseInt(txtFolio.getText().substring(1,7)), txtFolio.getText().substring(0,1));
+                    }else if(JCTicket2.isSelected()){
+                        this.dialog.dispose();
+                        JDBoletoPerdido bp = new JDBoletoPerdido(this.dialog,true);
+                        JDBoletoPerdido.jTextField7.setText(txtFolio.getText().substring(1,7));
+                        JDBoletoPerdido.jTextField8.setText(txtFolio.getText().substring(0,1));
+                        bp.setVisible(true);
+                        impresion.Imprimecomprobante(Integer.parseInt(txtFolio.getText().substring(1,7)), txtFolio.getText().substring(0,1));
+                     }
+                }
+                txtFolio.setText("");
+                txtimporte.setText("0");
+                txtpago.setText("");
+                txtFechaentradas.setText("");
+                txtFechasalida.setText("");
+                txtHoraentradas.setText("");
+                txtHoraentradas.setText("");
+                txtPlacas.setText("");
+                txttiempo.setText("");
+                txttiempo1.setText("0");
+                txtcambio.setText("");
+                JCTicket1.setSelected(false);
+                JCTicket2.setSelected(false);
+                JCTarifa1.setSelectedIndex(0);
+                txtFolio.requestFocusInWindow(); 
+                break;
+            case KeyEvent.VK_F1:
+                JCTarifa1.setSelectedIndex(0); break;
+            case KeyEvent.VK_F2:
+                JCTarifa1.setSelectedIndex(1); break;
+            case KeyEvent.VK_F3:
+                JCTarifa1.setSelectedIndex(2); break;
+            case KeyEvent.VK_F4:
+                JCTarifa1.setSelectedIndex(3); break;
+            case KeyEvent.VK_F5:
+                JCTarifa1.setSelectedIndex(4); break;
+            case KeyEvent.VK_F6:
+                JCTarifa1.setSelectedIndex(5); break;
+            case KeyEvent.VK_F7:
+                JCTarifa1.setSelectedIndex(6); break;
+            case KeyEvent.VK_F8:
+                JCTarifa1.setSelectedIndex(7); break;
+            case KeyEvent.VK_F10:
+                txtimporte.setText("0");
+                txtpago.setText("");
+                txtFechaentradas.setText("");
+                txtFechasalida.setText("");
+                txtHoraentradas.setText("");
+                txtHoraentradas.setText("");
+                txtPlacas.setText("");
+                txttiempo.setText("");
+                txttiempo1.setText("0");
+                txtcambio.setText("");
+                JCTicket1.setSelected(false);
+                JCTicket2.setSelected(false);
+                JCTarifa1.setSelectedIndex(0);
+                txtFolio.setText("");   
+                JCTarifa1.setSelectedIndex(0);
+                txtFolio.requestFocus();
+                break;
+            case KeyEvent.VK_ESCAPE:
+                this.dialog.dispose(); break;
         }
-     
-        } 
-        
-       
-         }else if(txtpago.isFocusOwner()){
-         
-         int debe = Integer.parseInt(txtimporte.getText());
-         int paga = Integer.parseInt(txtpago.getText());
-         int total = paga-debe;
-         txtcambio.setText(String.valueOf(total));
-         
-         txtFolio.requestFocusInWindow();
-         txtFolio.selectAll();
-         
-         
-         
-         }
-        
-    }else if(e.getKeyCode()==KeyEvent.VK_F9){
-            SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-       SimpleMySQLResult rs;
-       rs = mysql.Query ("SELECT * FROM estacionados WHERE TICKET= \""+txtFolio.getText().substring(1,7)+"\" AND SERIE = \""+txtFolio.getText().substring(0,1)+"\" AND ESTATUS= \"Registro\"");
-       if(rs.next()){
-       mysql.Query ("UPDATE estacionados SET SALIDA=NOW(),TIEMPO=\""+txttiempo.getText()+"\",DIAS=\""+txttiempo1.getText()+"\",IMPORTE=\""+txtimporte.getText()+"\",ESTATUS=\""+estado+"\", TARIFA=\""+JCTarifa1.getSelectedItem()+"\" WHERE TICKET= \""+txtFolio.getText().substring(1,7)+"\" AND SERIE = \""+txtFolio.getText().substring(0,1)+"\"");
-       
-          
-      
-      
-
-        mysql.close();
-          PrinterJob job = PrinterJob.getPrinterJob();
-          PageFormat pf = job.defaultPage();  
-          
-            Paper paper = new Paper();  
-            paper.setImageableArea(0, 0, paper.getWidth(), paper.getHeight());  
-            pf.setPaper(paper);  
-            
-            job.setPrintable( new MiPrintable(),pf);
-            
-try 
-{
-   
-   
-   if(JCTicket1.isSelected()){
-   job.print();
-   }
-   
-   
-} 
-catch (PrinterException es) 
-{
-   es.printStackTrace();
-}
-       }else{
-       showMessageDialog(null, "No es un Folio Valido o ya está Pagado");
-       }
-    txtFolio.setText("");
-        txtimporte.setText("0");
-        txtpago.setText("");
-        txtFechaentradas.setText("");
-        txtFechasalida.setText("");
-        txtHoraentradas.setText("");
-        txtHoraentradas.setText("");
-        txtPlacas.setText("");
-        txttiempo.setText("");
-        txttiempo1.setText("0");
-        txtcambio.setText("");
-        JCTicket1.setSelected(false);
-        JCTicket2.setSelected(false);
-        JCTarifa1.setSelectedIndex(0);
-        txtFolio.requestFocusInWindow();    
-        
-          rs = mysql.Query ("SELECT * FROM opciones");
-        String opciones[]=new String[20];
-        int i=0;
-        while (rs.next()){ 
-            opciones[i] =rs.getString("OPCION"); 
-            opciones[i] =rs.getString("VALOR"); 
-        i++;
-        } 
-       
-       int cajones=Integer.parseInt(opciones[9]);
-       
-        rs = mysql.Query ("SELECT * FROM estacionados WHERE SALIDA IS NULL ORDER BY ID DESC ");
-    	
-       cajones=cajones- rs.getNumRows();
-       jLabel14.setText(Integer.toString(rs.getNumRows()));
-       jLabel15.setText(Integer.toString(cajones));
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_F1){
-        
-        JCTarifa1.setSelectedIndex(0);
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_F2){
-        
-        JCTarifa1.setSelectedIndex(1);
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_F3){
-        
-        JCTarifa1.setSelectedIndex(2);
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_F4){
-        
-        JCTarifa1.setSelectedIndex(3);
-        }else if(e.getKeyCode()==KeyEvent.VK_F5){
-        
-        JCTarifa1.setSelectedIndex(4);
-        }else if(e.getKeyCode()==KeyEvent.VK_F6){
-        
-        JCTarifa1.setSelectedIndex(5);
-        }else if(e.getKeyCode()==KeyEvent.VK_F7){
-        
-        JCTarifa1.setSelectedIndex(6);
-        }else if(e.getKeyCode()==KeyEvent.VK_F8){
-        
-        JCTarifa1.setSelectedIndex(7);
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_F10){
-        
-        txtimporte.setText("0");
-        txtpago.setText("");
-        txtFechaentradas.setText("");
-        txtFechasalida.setText("");
-        txtHoraentradas.setText("");
-        txtHoraentradas.setText("");
-        txtPlacas.setText("");
-        txttiempo.setText("");
-        txttiempo1.setText("0");
-        txtcambio.setText("");
-        JCTicket1.setSelected(false);
-        JCTicket2.setSelected(false);
-        JCTarifa1.setSelectedIndex(0);
-        txtFolio.setText("");   
-        JCTarifa1.setSelectedIndex(0);
-        txtFolio.requestFocus();
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_A){
-        
-            System.out.println("sales");
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_ESCAPE){
-        
-        this.dialog.dispose();
- }
-        
+ 
     }
  
     public void keyReleased(KeyEvent e) {
         if (e.getKeyCode()==KeyEvent.VK_A) {
             txtFolio.setText("A");
         }else if (e.getKeyCode()==KeyEvent.VK_B){
-        txtFolio.setText("B");
+            txtFolio.setText("B");
         }
    
     }
  
 }
-class MiPrintable implements Printable 
-{
-   public int print (Graphics g, PageFormat f, int pageIndex) 
-   {
-       
-   
-       
-      if (pageIndex == 0) 
-      {
-          try {
-              // Imprime "Hola mundo" en la primera pagina, en la posicion 100,100
 
-              outputtingBarcodeAsPNG();
-          } catch (BarcodeException ex) {
-              Logger.getLogger(JDSalidas.class.getName()).log(Level.SEVERE, null, ex);
-          }
-    
-
-    Image img1 = Toolkit.getDefaultToolkit().getImage("C:/Estacionamientos/LogoTicket.jpg");
-    g.drawImage(img1, 0, 0, 290, 30, null);
-          
-          g.setFont(new Font("Arial", Font.BOLD, 8));  
-          SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-        SimpleMySQLResult rs;
-        rs = mysql.Query ("SELECT * FROM opciones WHERE ID = 2");
-        while (rs.next()){ String str =rs.getString("VALOR");
-                        drawStringMultiLine(g, str, 270, 10, 50);
-                      } rs.close();
-        rs = mysql.Query ("SELECT * FROM estacionados WHERE TICKET= \""+txtFolio.getText().substring(1,7)+"\" AND SERIE = \""+txtFolio.getText().substring(0,1)+"\"");
-        
-        while (rs.next()){  
-                     
-        g.setFont(new Font("Arial", Font.BOLD, 11));
-        linea=linea+4;
-        g.drawString("Servicio Estacionamiento Nota De Consumo", 10,linea);
-        linea=linea+3;
-        g.drawString("______________________________________________", 10,linea);
-        g.setFont(new Font("Arial", Font.BOLD, 22));
-        java.text.DecimalFormat nft2 = new  java.text.DecimalFormat("#000000.###");  
-        nft2.setDecimalSeparatorAlwaysShown(false); 
-        linea=linea+25;
-        g.drawString("FOLIO: "+rs.getString("SERIE")+nft2.format(Integer.parseInt(rs.getString("TICKET"))), 60,linea);
-        g.setFont(new Font("Arial", Font.BOLD, 15));
-        linea=linea+20;
-        g.drawString("PLACAS: "+rs.getString("PLACAS"), 70,linea);
-        g.setFont(new Font("Arial", Font.BOLD, 12));
-        linea=linea+15;
-   g.drawString("MARCA: "+rs.getString("MARCA"), 40,linea);
-   linea=linea+12;
-    DateFormat fold = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-         DateFormat fnew = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        g.drawString("ENTRADA: ", 40,linea);
-              try {
-                  g.drawString(fnew.format(fold.parse(rs.getString("ENTRADA").replace(".0", ""))), 130,linea);
-              } catch (ParseException ex) {
-                  Logger.getLogger(JDSalidas.class.getName()).log(Level.SEVERE, null, ex);
-              }
-        linea=linea+12;
-        g.drawString("SALIDA  : ", 40,linea);
-              try {
-                  g.drawString(fnew.format(fold.parse(rs.getString("SALIDA").replace(".0", ""))), 130,linea);
-              } catch (ParseException ex) {
-                  Logger.getLogger(JDSalidas.class.getName()).log(Level.SEVERE, null, ex);
-              }
-        linea=linea+12;
-        g.drawString("TARIFA: "+rs.getString("TARIFA"), 40,linea);
-            if (JCTicket2.isSelected()) {
-                linea=linea+12;
-                g.drawString("BOLETO PERDIDO", 40,linea);
-            }
-        linea=linea+12;
-g.drawString("RESP. TURNO: "+JDLogin.elusuario.toUpperCase(), 40,linea);     
-linea=linea+12;
-        g.drawString("TIEMPO: "+rs.getString("TIEMPO"), 40,linea);
-        linea=linea+12;
-        g.drawString("IMPORTE: $"+rs.getString("IMPORTE")+".00", 40,linea);
-        
-        
-        } 
-        linea=linea+12;
-         g.drawString("FORMA DE PAGO: EFECTIVO", 40,linea);
-        rs = mysql.Query ("SELECT * FROM opciones WHERE ID = 12");
-        linea=linea+12;
-        while (rs.next()){ 
-                        g.drawString("LUGAR DE EXPEDICION: "+rs.getString("VALOR"), 40,linea);
-                      } rs.close();
-        
-                              
-        
-g.setFont(new Font("Arial", Font.BOLD, 40));
-
-   
-linea=linea+5;
-    g.setFont(new Font("Arial", Font.BOLD, 12));
-        g.drawString("______________________________________________", 10,linea); 
-g.setFont(new Font("Arial", Font.BOLD, 13));  
-          linea=linea+18;
-     g.drawString("GRACIAS POR SU VISITA, VUELVA PRONTO", 20,linea)  ; 
-       
-                      
-               
-         return PAGE_EXISTS;
-      }
-      else
-         return NO_SUCH_PAGE;
-   }
-    public void outputtingBarcodeAsPNG() throws BarcodeException {
-      // get a Barcode from the BarcodeFactory
-        java.text.DecimalFormat nft = new  
-java.text.DecimalFormat("#000000.###");  
-nft.setDecimalSeparatorAlwaysShown(false); 
- SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-        SimpleMySQLResult rs;
-        
-        rs = mysql.Query ("SELECT * FROM estacionados ORDER BY ID DESC LIMIT 1");
-        
-        while (rs.next()){  siguiente = Integer.parseInt(rs.getString("TICKET"));
-                      lalaserie=rs.getString("SERIE"); } rs.close();  
-		Barcode barcode = BarcodeFactory.createCode128B(lalaserie+nft.format(siguiente));
-                barcode.setDrawingText(false);
-                barcode.setBarHeight(50);
-
-        try {
-            File f = new File("mybarcode.jpg");
-
-            // Let the barcode image handler do the hard work
-            BarcodeImageHandler.saveJPEG(barcode, f);
-        } catch (Exception e) {
-            // Error handling here
-        }
-    }
-}
-public static void drawStringMultiLine(Graphics g, String text, int lineWidth, int x, int y) {
-    FontMetrics m = g.getFontMetrics();
-    lineWidth=280;
-    if(m.stringWidth(text) < lineWidth) {
-        g.drawString(text, x, y);
-    } else {
-        String[] words = text.split(" ");
-        String currentLine = words[0];
-        for(int i = 1; i < words.length; i++) {
-            if(m.stringWidth(currentLine+words[i]) < lineWidth) {
-                currentLine += " "+words[i];
-            } else {
-                
-                for (int j = 0; j <= 280; j++) {
-                 
-                }
-                g.drawString(justificar(m,currentLine), x, y);
-                y += m.getHeight();
-                currentLine = words[i];
-                linea=y+m.getHeight();
-            }
-        }
-        if(currentLine.trim().length() > 0) {
-            g.drawString(currentLine, x, y);
-        }
-    }
-}
-
-
-public static String justificar(FontMetrics m,String currentLine){
-
- ArrayList<Integer> espacios = new ArrayList<Integer>();
-         for (int index = currentLine.indexOf(" "); index >= 0; index = currentLine.indexOf(" ", index + 1)){
-         espacios.add(index);
-        }
-        StringBuilder salida=new StringBuilder();
-        salida.append(currentLine);
-        int contador=0;
-        int contador2=0;
-        while (m.stringWidth(salida.toString())<=280) {    
-          contador=0;
-
-            for (int espacio : espacios) {
-                salida.insert(espacio+contador+contador2, ' ');
-                
-                
-                contador=contador+1+contador2;
-                if (m.stringWidth(salida.toString())>=280) {
-                    break;
-                }
-            }
-            contador2++;
-            
-        }
-
-
-
-return salida.toString();
-}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton JBF1;

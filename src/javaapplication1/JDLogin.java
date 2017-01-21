@@ -73,6 +73,11 @@ static public String elusuario=null;
         jLabel1.setText("Usuario");
 
         txtusuario.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        txtusuario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtusuarioActionPerformed(evt);
+            }
+        });
 
         jLabel2.setText("Password");
 
@@ -157,6 +162,10 @@ static public String elusuario=null;
         
         
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void txtusuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtusuarioActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtusuarioActionPerformed
 
     /**
      * @param args the command line arguments

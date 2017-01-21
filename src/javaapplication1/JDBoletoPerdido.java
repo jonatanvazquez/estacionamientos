@@ -17,15 +17,9 @@ import static java.awt.print.Printable.NO_SUCH_PAGE;
 import static java.awt.print.Printable.PAGE_EXISTS;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
-import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import static javaapplication1.JDSalidas.linea;
 import static javax.swing.JOptionPane.showMessageDialog;
-import net.sourceforge.barbecue.Barcode;
 import net.sourceforge.barbecue.BarcodeException;
-import net.sourceforge.barbecue.BarcodeFactory;
-import net.sourceforge.barbecue.BarcodeImageHandler;
+
 import simplemysql.SimpleMySQL;
 import simplemysql.SimpleMySQLResult;
 

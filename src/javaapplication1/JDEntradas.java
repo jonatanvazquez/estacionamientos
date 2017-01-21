@@ -1,83 +1,35 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package javaapplication1;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import javax.swing.Timer;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.text.DocumentFilter;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.PlainDocument;
+import javax.swing.text.*;
 import java.awt.event.KeyEvent;
-import javax.swing.KeyStroke;
-
 import java.awt.event.KeyListener;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.awt.print.*;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.text.DateFormat;
-
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.print.attribute.HashPrintRequestAttributeSet;
-import javax.print.attribute.PrintRequestAttributeSet;
-import javax.print.attribute.standard.Copies;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JDialog;
 import static javax.swing.JOptionPane.showMessageDialog;
-import simplemysql.SimpleMySQL;
 import simplemysql.SimpleMySQLResult;
 
-import net.sourceforge.barbecue.Barcode;
-import net.sourceforge.barbecue.BarcodeException;
-import net.sourceforge.barbecue.BarcodeFactory;
-import net.sourceforge.barbecue.BarcodeImageHandler;
-import net.sourceforge.barbecue.output.OutputException;
 
-
-
-/**
- *
- * @author Jonatan
- */
 public class JDEntradas  extends javax.swing.JDialog   {
 public static  int siguiente;
 public String lalaserie = null;
 public static  int linea=0;
 public static  int copia=0;
+public Db db;
+public Autos auto;
+public Impresiones impresion;
+SimpleMySQLResult rs;
 
-    /**
-     * Creates new form JDEntradas
-     * @param parent
-     * @param modal
-     */
     public JDEntradas(java.awt.Frame parent, boolean modal)  {
         
         super(parent, modal);
-         SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-        SimpleMySQLResult rs;
-       
-        
-      initComponents();
+        db=new Db();
+        impresion=new Impresiones();
+        auto=new Autos();
+        initComponents();
         this.setLocationRelativeTo(null);
         txtPlacas.addKeyListener(new KeyListenerCustom(this));
         txtModelo.addKeyListener(new KeyListenerCustom(this));
@@ -92,10 +44,8 @@ public static  int copia=0;
         JBF8.setFocusable(false);
         JCTicket.setFocusable(false);
         txtPlacas.requestFocusInWindow();
-     
         PlainDocument doc = new TextLimiter(7);
         PlainDocument doc2 = new TextLimiter(7);
-
         doc.setDocumentFilter(new upperCASEJTEXTFIELD());
         doc2.setDocumentFilter(new upperCASEJTEXTFIELD());
         txtPlacas.setDocument(doc);
@@ -104,75 +54,23 @@ public static  int copia=0;
         txthoraentrada.setEditable(false);
         
        
-        rs = mysql.Query ("SELECT * FROM tarifas");
-        while (rs.next()){
-
-                        String USUARIO=rs.getString("DESCRIPCION");
-                        JCTarifa.addItem(USUARIO);
-                  
-         }
-        
-       
-        
-        rs.close(); 
-        
-        
-        
+        JCTarifa.setModel(new DefaultComboBoxModel(db.ListaTarifas()));
         
     	SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         SimpleDateFormat sdfa = new SimpleDateFormat("dd/MM/yyyy");
+        Calendar cal = Calendar.getInstance();
         
         
-        new Timer(1000, new ActionListener() {
-            
-            
-            
-            
-            
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            Calendar cal = Calendar.getInstance();
-    	cal.getTime();
+        new Timer(1000, (ActionEvent e) -> {
             txthoraentrada.setText(sdf.format(cal.getTime()));
             txtFechaentrada.setText(sdfa.format(cal.getTime()));
-            
-             SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-        SimpleMySQLResult rs;
-            rs = mysql.Query ("SELECT * FROM opciones");
-        String opciones[]=new String[20];
-        int i=0;
-        while (rs.next()){ 
-            opciones[i] =rs.getString("OPCION"); 
-            opciones[i] =rs.getString("VALOR"); 
-        i++;
-        } 
-       
-       int cajones=Integer.parseInt(opciones[9]);
-       
-        rs = mysql.Query ("SELECT * FROM estacionados WHERE SALIDA IS NULL ORDER BY ID DESC ");
-    	
-       cajones=cajones- rs.getNumRows();
-       jLabel8.setText(Integer.toString(rs.getNumRows()));
-       jLabel9.setText(Integer.toString(cajones));
-            
-        }
-        
-        
-    }).start();
-        
+            jLabel8.setText(Integer.toString(db.CajonesOcupados()));
+            jLabel9.setText(Integer.toString(db.CajonesDisponibles()));
+        }).start();
         
 
-       
-        
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -549,98 +447,12 @@ JCTarifa.setSelectedIndex(0);        // TODO add your handling code here:
             showMessageDialog(null, "Ingresa Placas o modelo");
             txtPlacas.requestFocusInWindow();
         }else{
-            SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-       SimpleMySQLResult rs;
-       
-       
-       rs = mysql.Query ("SELECT * FROM opciones");
-        String opciones[]=new String[20];
-        int i=0;
-        while (rs.next()){ 
-            opciones[i] =rs.getString("OPCION"); 
-            opciones[i] =rs.getString("VALOR"); 
-        i++;
-        } 
-       
-       String serieactual=opciones[3];
-       int seriea = Integer.parseInt(opciones[5]);
-       int contserie = Integer.parseInt(opciones[4]);
-       int serieb = Integer.parseInt(opciones[6]);
-       seriea--;
-       serieb--;
-       if("A".equals(serieactual)){
-       if(contserie>=seriea&&serieb>=0){ contserie=0; serieactual="B"; }else{ contserie++; }
-        }else if("B".equals(serieactual)){
-       if(contserie>=serieb){ contserie=0; serieactual="A"; }else{ contserie++; }
-       }
-       
-       mysql.Query ("UPDATE opciones SET VALOR= \""+serieactual+"\" WHERE ID=4");
-       mysql.Query ("UPDATE opciones SET VALOR=\""+contserie+"\" WHERE ID=5");
-       
-       
-       
-        rs = mysql.Query ("SELECT TICKET FROM estacionados WHERE SERIE = \""+serieactual+"\" ORDER BY ID DESC LIMIT 1");
-        int siguiente=2;
-        while (rs.next()){ String algunassiguen =rs.getString("TICKET"); 
-        siguiente = Integer.parseInt(algunassiguen);
-        } 
-        siguiente++;
-        
-        
-     
-        rs.close();
-      
-      
-      
-        mysql.Query ("INSERT INTO estacionados (TICKET,PLACAS,MARCA,TARIFA,ENTRADA,ESTATUS,USUARIOEMISION, SERIE) VALUES(\""+siguiente+"\",\""+txtPlacas.getText()+"\",\""+txtModelo.getText()+"\",\""+JCTarifa.getSelectedItem()+"\",NOW(), \"Registro\",\"ADMINISTRADOR\",\""+serieactual+"\")");
-        
-
-        mysql.close();
-          PrinterJob job = PrinterJob.getPrinterJob();
-          PageFormat pf = job.defaultPage();  
-          
-            Paper paper = new Paper();  
-            paper.setImageableArea(0, 0, paper.getWidth(), paper.getHeight());  
-            pf.setPaper(paper);  
-            
-            job.setPrintable( new MiPrintable(),pf);
-            
-try 
-{
-   
-   job.print();
-   if(JCTicket.isSelected()){
-    copia=1;
-   job.print();
-   }
-   
-} 
-catch (PrinterException es) 
-{
-   es.printStackTrace();
-}
-        
-    txtPlacas.setText("");
-        txtModelo.setText("");
-        JCTarifa.setSelectedIndex(0);
-        copia=0;
- rs = mysql.Query ("SELECT * FROM opciones");
-        i=0;
-        while (rs.next()){ 
-            opciones[i] =rs.getString("OPCION"); 
-            opciones[i] =rs.getString("VALOR"); 
-        i++;
-        } 
-       
-       int cajones=Integer.parseInt(opciones[9]);
-         rs = mysql.Query ("SELECT * FROM estacionados WHERE SALIDA IS NULL ORDER BY ID DESC ");
-
-       cajones=cajones- rs.getNumRows();
-       jLabel8.setText(Integer.toString(rs.getNumRows()));
-       jLabel9.setText(Integer.toString(cajones));
-        txtPlacas.requestFocusInWindow();    
+            auto.Agregar(txtPlacas.getText(), txtModelo.getText(), "ADMINISTRADOR", JCTarifa.getSelectedItem().toString());
+                    impresion.Imprimeboleto(JCTicket.isSelected());
+                    txtPlacas.setText("");
+                    txtModelo.setText("");
+                    JCTarifa.setSelectedIndex(0);
+                    txtPlacas.requestFocusInWindow();    
         }
 
     }//GEN-LAST:event_JBGrabarActionPerformed
@@ -682,42 +494,15 @@ catch (PrinterException es)
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
+        java.awt.EventQueue.invokeLater(() -> {
+            JDEntradas dialog = new JDEntradas(new javax.swing.JFrame(), true);
+            dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    System.exit(0);
                 }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(JDEntradas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(JDEntradas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(JDEntradas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(JDEntradas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                JDEntradas dialog = new JDEntradas(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
+            });
+            dialog.setVisible(true);
         });
     }
     
@@ -763,379 +548,69 @@ catch (PrinterException es)
 public class KeyListenerCustom implements KeyListener{
     private JDialog dialog=null;
     public KeyListenerCustom(JDialog dialog){
-
         this.dialog=dialog;
     }
-    public void keyTyped(KeyEvent e) {
-
-    }
  
+    @Override
     public void keyPressed(KeyEvent e) {
-
-        if(e.getKeyCode()==123) {//27 es el código de la tecla esc
-           
-            dialog.setVisible(false);
-            JDSalidas jds=new JDSalidas(null, rootPaneCheckingEnabled);
-            jds.setVisible(rootPaneCheckingEnabled);
-        }
-        if(e.getKeyCode()==KeyEvent.VK_F9){
-            if (txtModelo.getText().equals("") && txtPlacas.getText().equals(""))  {
-            showMessageDialog(null, "Ingresa Placas o modelo");
-        }else{
-            SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-       SimpleMySQLResult rs;
-       
-       
-       rs = mysql.Query ("SELECT * FROM opciones");
-        String opciones[]=new String[20];
-        int i=0;
-        while (rs.next()){ 
-            opciones[i] =rs.getString("OPCION"); 
-            opciones[i] =rs.getString("VALOR"); 
-        i++;
-        } 
-       
-       String serieactual=opciones[3];
-       int seriea = Integer.parseInt(opciones[5]);
-       int contserie = Integer.parseInt(opciones[4]);
-       int serieb = Integer.parseInt(opciones[6]);
-       seriea--;
-       serieb--;
-       if("A".equals(serieactual)){
-       if(contserie>=seriea&&serieb>=0){ contserie=0; serieactual="B"; }else{ contserie++; }
-        }else if("B".equals(serieactual)){
-       if(contserie>=serieb){ contserie=0; serieactual="A"; }else{ contserie++; }
-       }
-              
-       mysql.Query ("UPDATE opciones SET VALOR= \""+serieactual+"\" WHERE ID=4");
-       mysql.Query ("UPDATE opciones SET VALOR=\""+contserie+"\" WHERE ID=5");
-       
-       
-       
-        rs = mysql.Query ("SELECT TICKET FROM estacionados WHERE SERIE = \""+serieactual+"\" ORDER BY ID DESC LIMIT 1");
-        int siguiente=2;
-        while (rs.next()){ String algunassiguen =rs.getString("TICKET"); 
-        siguiente = Integer.parseInt(algunassiguen);
-        } 
-        siguiente++;
         
-        
-     
-        rs.close();
-      
-      
-      
-        mysql.Query ("INSERT INTO estacionados (TICKET,PLACAS,MARCA,TARIFA,ENTRADA,ESTATUS,USUARIOEMISION, SERIE) VALUES(\""+siguiente+"\",\""+txtPlacas.getText()+"\",\""+txtModelo.getText()+"\",\""+JCTarifa.getSelectedItem()+"\",NOW(), \"Registro\",\"ADMINISTRADOR\",\""+serieactual+"\")");
-        
-
-        mysql.close();
-          PrinterJob job = PrinterJob.getPrinterJob();
-          PageFormat pf = job.defaultPage();  
-          
-            Paper paper = new Paper();  
-            paper.setImageableArea(0, 0, paper.getWidth(), paper.getHeight());  
-            pf.setPaper(paper);  
-            
-            job.setPrintable( new MiPrintable(),pf);
-            
-try 
-{
-   
-   job.print();
-   if(JCTicket.isSelected()){
-    copia=1;
-   job.print();
-   }
-   
-   
-} 
-catch (PrinterException es) 
-{
-   es.printStackTrace();
-}
-        
-    txtPlacas.setText("");
-        txtModelo.setText("");
-        JCTarifa.setSelectedIndex(0);
-        copia=0;
-        
-       rs = mysql.Query ("SELECT * FROM opciones");
-        i=0;
-        while (rs.next()){ 
-            opciones[i] =rs.getString("OPCION"); 
-            opciones[i] =rs.getString("VALOR"); 
-        i++;
-        } 
-       
-       int cajones=Integer.parseInt(opciones[9]);
-       
-        rs = mysql.Query ("SELECT * FROM estacionados WHERE SALIDA IS NULL ORDER BY ID DESC ");
-    	
-       cajones=cajones- rs.getNumRows();
-       jLabel8.setText(Integer.toString(rs.getNumRows()));
-       jLabel9.setText(Integer.toString(cajones));
-        
-        }
-            txtPlacas.requestFocusInWindow();  
-        }else if(e.getKeyCode()==KeyEvent.VK_ENTER){
-        
-        if(txtPlacas.isFocusOwner()){    
-        txtModelo.requestFocusInWindow();
-        txtModelo.selectAll();
-        }else if(txtModelo.isFocusOwner()){
-        txtPlacas.requestFocusInWindow();
-        txtPlacas.selectAll();
-        }
-                
-                
-        }else if(e.getKeyCode()==KeyEvent.VK_F1){
-        
-        JCTarifa.setSelectedIndex(0);
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_F2){
-        
-        JCTarifa.setSelectedIndex(1);
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_F3){
-        
-        JCTarifa.setSelectedIndex(2);
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_F4){
-        
-        JCTarifa.setSelectedIndex(3);
-        }else if(e.getKeyCode()==KeyEvent.VK_F5){
-        
-        JCTarifa.setSelectedIndex(4);
-        }else if(e.getKeyCode()==KeyEvent.VK_F6){
-        
-        JCTarifa.setSelectedIndex(5);
-        }else if(e.getKeyCode()==KeyEvent.VK_F7){
-        
-        JCTarifa.setSelectedIndex(6);
-        }else if(e.getKeyCode()==KeyEvent.VK_F8){
-        
-        JCTarifa.setSelectedIndex(7);
-        }else if(e.getKeyCode()==KeyEvent.VK_F10){
-        
-        
-        
-        txtPlacas.setText("");
-        txtModelo.setText("");
-        JCTarifa.setSelectedIndex(0);
-        txtPlacas.requestFocusInWindow();
-        
-        }else if(e.getKeyCode()==KeyEvent.VK_ESCAPE){
-        
-        this.dialog.dispose();
-        
-        }
-        
-        
-    }
- 
-    public void keyReleased(KeyEvent e) {
-           
-    }
- 
-}
-
-class MiPrintable implements Printable 
-{
-   public int print (Graphics g, PageFormat f, int pageIndex) 
-   {
-       
-   
-       
-      if (pageIndex == 0) 
-      { 
-          try {
-              // Imprime "Hola mundo" en la primera pagina, en la posicion 100,100
-
-              outputtingBarcodeAsPNG();
-          } catch (BarcodeException ex) {
-             showMessageDialog(null, ex);
-          }
-    
-
-    Image img1 = Toolkit.getDefaultToolkit().getImage("C:/Estacionamientos/LogoTicket.jpg");
-    g.drawImage(img1, 0, 0, 290, 30, null);
-          
-          g.setFont(new Font("Arial", Font.BOLD, 8));  
-          SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-        SimpleMySQLResult rs;
-        rs = mysql.Query ("SELECT * FROM opciones WHERE ID = 2");
-        while (rs.next()){ String str =rs.getString("VALOR");
-                        drawStringMultiLine(g, str, 270, 10, 50);
-                      } rs.close();
-        rs = mysql.Query ("SELECT * FROM estacionados ORDER BY ID DESC LIMIT 1");
-        
-        while (rs.next()){  siguiente = Integer.parseInt(rs.getString("TICKET"));
-                      lalaserie=rs.getString("SERIE"); } rs.close();              
-        g.setFont(new Font("Arial", Font.BOLD, 12));
-        linea=linea+5;
-        g.drawString("TICKET DE ENTRADA", 80,linea);
-        linea=linea+5;
-        g.drawString("______________________________________________", 10,linea);
-        g.setFont(new Font("Arial", Font.BOLD, 22));
-        java.text.DecimalFormat nft = new  
-java.text.DecimalFormat("#000000.###");  
-nft.setDecimalSeparatorAlwaysShown(false); 
-linea=linea+24;
-        g.drawString("FOLIO: "+lalaserie+nft.format(siguiente), 60,linea);
-        g.setFont(new Font("Arial", Font.BOLD, 15));
-        linea=linea+20;
-        g.drawString("PLACAS: "+txtPlacas.getText(), 70,linea);
-        g.setFont(new Font("Arial", Font.BOLD, 12));
-        linea=linea+15;
-        g.drawString("MARCA: "+txtModelo.getText(), 40,linea);
-        linea=linea+12;
-        g.drawString("FECHA: ", 40,linea);
-         
-                g.drawString(txtFechaentrada.getText().replace("-", "/"), 100,linea);
-        linea=linea+12;
-        g.drawString("HORA: ", 40,linea);
-
-        g.drawString(txthoraentrada.getText(), 100,linea);
-        linea=linea+12;
-        g.drawString("TARIFA: "+JCTarifa.getSelectedItem(), 40,linea);
-        linea=linea+12;
-g.drawString("RESP. TURNO: "+JDLogin.elusuario.toUpperCase(), 40,linea);     
-
-   Image img3=null;
-     
-          try {
-              img3 = ImageIO.read(new File("mybarcode.jpg"));
-          } catch (IOException ex) {
-              Logger.getLogger(JDEntradas.class.getName()).log(Level.SEVERE, null, ex);
-          }
-        linea=linea+4; 
-    g.drawImage(img3, 10,linea,  null);
-     linea=linea+50;
-    g.setFont(new Font("Arial", Font.BOLD, 12));
-        g.drawString("______________________________________________", 10,linea); 
-g.setFont(new Font("Arial", Font.BOLD, 6));  
-          System.out.println("hasta aqui bien");
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-        rs = mysql.Query ("SELECT * FROM opciones WHERE ID = 13");
-        linea=linea+12;
-         
-        if(copia==0){
-        while (rs.next()){ String str =rs.getString("VALOR");
-                        drawStringMultiLine(g, str, 280, 10, linea);
-                      } rs.close();
-                      
-        }
-        rs = mysql.Query ("SELECT * FROM opciones WHERE ID = 17");
-        
-         
-        if(copia==0){
-        while (rs.next()){ String str =rs.getString("VALOR");
-                        drawStringMultiLine(g, str, 280, 10, linea);
-                      } rs.close();
-                      
-        }
-        linea=linea+12;
-         return PAGE_EXISTS;
-      }
-      else{
-         return NO_SUCH_PAGE;
-      }
-      }
-    public void outputtingBarcodeAsPNG() throws BarcodeException {
-        // get a Barcode from the BarcodeFactory
-        java.text.DecimalFormat nft = new  
-java.text.DecimalFormat("#000000.###");  
-         SimpleMySQL mysql;
-        mysql = new SimpleMySQL();
-        mysql.connect("localhost", "root", "x4899954", "estacionamientos");
-        SimpleMySQLResult rs;
-       
-        rs = mysql.Query ("SELECT * FROM estacionados ORDER BY ID DESC LIMIT 1");
-        
-        while (rs.next()){  siguiente = Integer.parseInt(rs.getString("TICKET"));
-                      lalaserie=rs.getString("SERIE"); } rs.close();     
-nft.setDecimalSeparatorAlwaysShown(false); 
-		Barcode barcode = BarcodeFactory.createCode128B(lalaserie+nft.format(siguiente));
-                barcode.setDrawingText(false);
-                barcode.setBarHeight(50);
-
-        try {
-            File f = new File("mybarcode.jpg");
-
-            // Let the barcode image handler do the hard work
-            BarcodeImageHandler.saveJPEG(barcode, f);
-        } catch (Exception e) {
-            // Error handling here
-        }
-    }
-}
-public static void drawStringMultiLine(Graphics g, String text, int lineWidth, int x, int y) {
-    FontMetrics m = g.getFontMetrics();
-    lineWidth=280;
-    System.out.println("vamos"+text);
-    if(m.stringWidth(text) < lineWidth) {
-        g.drawString(text, x, y);
-    } else {
-        String[] words = text.split(" ");
-        String currentLine = words[0];
-        for(int i = 1; i < words.length; i++) {
-            if(m.stringWidth(currentLine+words[i]) < lineWidth) {
-                currentLine += " "+words[i];
-            } else {
-                
-                for (int j = 0; j <= 280; j++) {
-                 
+        switch(e.getKeyCode()){
+            case 123:
+                dialog.setVisible(false);
+                JDSalidas jds=new JDSalidas(null, rootPaneCheckingEnabled);
+                jds.setVisible(rootPaneCheckingEnabled);
+                break;
+            case KeyEvent.VK_F9:
+                if (txtModelo.getText().equals("") && txtPlacas.getText().equals(""))  {
+                    showMessageDialog(null, "Ingresa Placas o modelo");
+                }else{
+                    auto.Agregar(txtPlacas.getText(), txtModelo.getText(), "ADMINISTRADOR", JCTarifa.getSelectedItem().toString());
+                    impresion.Imprimeboleto(JCTicket.isSelected());
+                    txtPlacas.setText("");
+                    txtModelo.setText("");
+                    JCTarifa.setSelectedIndex(0);
                 }
-                System.out.println("hasta aqui bien"+currentLine);
-                g.drawString(justificar(m,currentLine), x, y);
-                y += m.getHeight();
-                currentLine = words[i];
-                linea=y+m.getHeight();
-                
-            }
+                txtPlacas.requestFocusInWindow(); break;
+            case KeyEvent.VK_ENTER:
+                if(txtPlacas.isFocusOwner()){    
+                    txtModelo.requestFocusInWindow();
+                    txtModelo.selectAll();
+                }else if(txtModelo.isFocusOwner()){
+                    txtPlacas.requestFocusInWindow();
+                    txtPlacas.selectAll();
+                } break;
+            case KeyEvent.VK_F1:
+                JCTarifa.setSelectedIndex(0); break;
+            case KeyEvent.VK_F2:
+                JCTarifa.setSelectedIndex(1); break;
+            case KeyEvent.VK_F3:
+                JCTarifa.setSelectedIndex(2); break;
+            case KeyEvent.VK_F4:
+                JCTarifa.setSelectedIndex(3); break;
+            case KeyEvent.VK_F5:
+                JCTarifa.setSelectedIndex(4); break;
+            case KeyEvent.VK_F6:
+                JCTarifa.setSelectedIndex(5); break;
+            case KeyEvent.VK_F7:
+                JCTarifa.setSelectedIndex(6); break;
+            case KeyEvent.VK_F8:
+                JCTarifa.setSelectedIndex(7); break;
+            case KeyEvent.VK_F10:
+                txtPlacas.setText("");
+                txtModelo.setText("");
+                JCTarifa.setSelectedIndex(0);
+                txtPlacas.requestFocusInWindow(); break;
+            case KeyEvent.VK_ESCAPE:
+                this.dialog.dispose(); break;
         }
-        if(currentLine.trim().length() > 0) {
-            g.drawString(currentLine, x, y);
-        }
+
     }
+        @Override
+        public void keyTyped(KeyEvent e) {}
+        @Override
+        public void keyReleased(KeyEvent e) {}
 }
 
-
-public static String justificar(FontMetrics m,String currentLine){
-
- ArrayList<Integer> espacios = new ArrayList<Integer>();
-         for (int index = currentLine.indexOf(" "); index >= 0; index = currentLine.indexOf(" ", index + 1)){
-         espacios.add(index);
-        }
-        StringBuilder salida=new StringBuilder();
-        salida.append(currentLine);
-        int contador=0;
-        int contador2=0;
-        while (m.stringWidth(salida.toString())<=280) {    
-          contador=0;
-
-            for (int espacio : espacios) {
-                salida.insert(espacio+contador+contador2, ' ');
-                
-                
-                contador=contador+1+contador2;
-                if (m.stringWidth(salida.toString())>=280) {
-                    break;
-                }
-            }
-            contador2++;
-            
-        }
-
-
-
-return salida.toString();
-}
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton JBF1;
     private javax.swing.JButton JBF2;
